@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>PRA3 Chatbot</h1>
+</div>
+
+<div id="chat-log" class="well" style="height: 300px; overflow-y: auto;"></div>
+
+<form id="chat-form" class="form-inline">
+    <input type="text" id="message" class="form-control" placeholder="Type a message..."
+           autocomplete="off" style="width: 70%;">
+    <button type="submit" class="btn btn-primary">Send</button>
+</form>
+
+<br>
+<a href="{{ url_for('logout') }}" class="btn btn-default">Logout</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message');
+    const log = document.getElementById('chat-log');
+
+    function addLine(who, text) {
+        const p = document.createElement('p');
+        p.innerHTML = '<strong>' + who + ':</strong> ';
+        p.appendChild(document.createTextNode(text));
+        log.appendChild(p);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        addLine('You', message);
+        input.value = '';
+
+        const response = await fetch('{{ url_for("chat") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: message})
+        });
+        const data = await response.json();
+        addLine('Bot', data.reply);
+    });
+</script>
+{% endblock %}

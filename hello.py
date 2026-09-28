@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flask import Flask, render_template, session, redirect, url_for, flash
+from flask import Flask, render_template, session, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf import FlaskForm
@@ -30,6 +30,8 @@ def index():
             flash('Looks like you have changed your name!')
         session['name'] = form.name.data
         session['email'] = form.email.data
+        if 'utoronto' in form.email.data:
+            return redirect(url_for('chatbot'))
         return redirect(url_for('index'))
 
     email = session.get('email')
@@ -40,6 +42,43 @@ def index():
                            email=email,
                            is_uoft=is_uoft,
                            current_time=datetime.now(timezone.utc))
+
+@app.route('/chatbot')
+def chatbot():
+    email = session.get('email')
+    if not email or 'utoronto' not in email:
+        return redirect(url_for('index'))
+    return render_template('chat.html')
+
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    message = request.json['message']
+    lower = message.lower()
+
+    if 'my name is' in lower:
+        start = lower.index('my name is') + len('my name is')
+        name = message[start:].strip().rstrip('.!?')
+        session['chat_name'] = name
+        reply = f'Nice to meet you, {name}!'
+    elif 'what is my name' in lower:
+        name = session.get('chat_name')
+        if name:
+            reply = f'Your name is {name}.'
+        else:
+            reply = "I don't know your name yet."
+    elif 'hello' in lower:
+        reply = 'Hello!'
+    else:
+        reply = "I don't understand."
+
+    return {'reply': reply}
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 
 @app.route('/user/<name>')
