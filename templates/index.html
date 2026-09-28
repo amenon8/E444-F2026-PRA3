@@ -5,6 +5,13 @@
 <div class="page-header">
     <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
 </div>
+{% if email %}
+    {% if is_uoft %}
+    <p>Your UofT email is {{ email }}.</p>
+    {% else %}
+    <p>Please use your UofT email.</p>
+    {% endif %}
+{% endif %}
 {{ wtf.quick_form(form) }}
 <p>The local date and time is {{ moment(current_time).format('LLLL') }}.</p>
 {% endblock %}
