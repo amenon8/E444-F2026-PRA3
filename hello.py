@@ -12,7 +12,7 @@ moment = Moment(app)
 @app.route('/')
 def index():
     return render_template('index.html',
-                           name='Anni',
+                           name='Anika',
                            current_time=datetime.now(timezone.utc))
 
 
